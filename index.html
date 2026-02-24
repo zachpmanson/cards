@@ -1,0 +1,38 @@
+<!doctype html>
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/xp.css" />
+</head>
+<body></body>
+<style>
+  body {
+    background-color: #008000;
+  }
+  @keyframes msgSuccess {
+    50% {
+      opacity: 1;
+    }
+
+    99% {
+      opacity: 0;
+    }
+
+    100% {
+      opacity: 0;
+      display: none;
+    }
+  }
+
+  .child {
+    position: absolute;
+    width: 100%;
+    height: 50px;
+    animation-name: msgSuccess;
+    animation-duration: 1s;
+    opacity: 0;
+  }
+
+  .d-none {
+    display: none;
+  }
+</style>
+<script type="module" src="main.js"></script>
