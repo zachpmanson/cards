@@ -9,15 +9,25 @@ let cwidth = width * Math.round(dpr);
 let cheight = height * Math.round(dpr);
 
 export default function Card({ suit, number, faceDown }) {
+  const actualSuit = faceDown ? 5 : suit;
+  const actualNumber = faceDown ? 1 : number;
+
+  const offsetX = (Math.floor(actualNumber - 1) % 14) * width;
+  const offsetY = (Math.floor(actualSuit - 1) % 6) * height;
+
   return html`<div
     class="card"
     style=${{
       height: `${height}px`,
       width: `${width}px`,
-      borderRadius: "3px",
-      background: faceDown
-        ? "url('/assets/card-back.png')"
-        : `url(${sprite}) ${(Math.floor(suit) % 4) * width}px ${(Math.floor(-number + 1) % 14) * height}px`,
+      borderRadius: "3.5px",
+      background: `url(${sprite}) ${-offsetX}px ${-offsetY}px`,
     }}
   ></div>`;
 }
+
+// ${number}-${suit}
+// <br />
+// ${faceDown ? "Face Down" : "Face Up"}
+// <br />
+// X${offsetX} / Y${offsetY}

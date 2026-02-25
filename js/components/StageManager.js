@@ -33,12 +33,12 @@ export default function StageManager() {
   };
 
   return html`<div className="flex flex-col justify-start">
-    <div className="flex">
+    <div className="flex items-center gap-1">
       <button onClick=${back}>Back</button>
       <button onClick=${next}>Next</button>
+      ${stageId} - ${currentStage}
     </div>
 
-    ${stageId} - ${currentStage}
     <${stageMap[currentStage]} next=${next} />
   </div>`;
 }
