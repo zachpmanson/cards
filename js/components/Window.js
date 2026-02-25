@@ -1,4 +1,5 @@
 import { html } from "https://unpkg.com/htm/preact/standalone.module.js";
+
 export default function Window({ title, body }) {
   return html`<div class="window" style="width: 300px">
     <div class="title-bar">

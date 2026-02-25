@@ -1,5 +1,5 @@
 import { html, render } from "https://unpkg.com/htm/preact/standalone.module.js";
-import { q } from "/util.js";
+import { q } from "../utils.js";
 
 function showMessage(element, message) {
   let initPostion = element.style.position;
@@ -26,7 +26,7 @@ export function showPopup(title, body, onClose) {
   const popup = q("#popup");
 
   render(
-    html`<div class="window" style="width: 300px">
+    html`<div class="window" style=${{ width: "fit-content", minWidth: "300px" }}>
       <div class="title-bar">
         <div class="title-bar-text">${title}</div>
         <div class="title-bar-controls">

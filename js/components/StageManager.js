@@ -1,10 +1,11 @@
 import { html, useState } from "https://unpkg.com/htm/preact/standalone.module.js";
+import NoCards from "../stages/NoCards.js";
 import WantToPlay from "../stages/WantToPlay.js";
 
 const stageMap = {
   wantToPlay: WantToPlay,
-  winnerHires: null,
-  noCards: null,
+  // winnerHires: null,
+  noCards: NoCards,
   info1: null,
   card1: null,
   info2: null,
@@ -27,10 +28,17 @@ export default function StageManager() {
     setStageId((stageId + 1) % stages.length);
   };
 
-  return html`<div>
-    ${currentStage} ${stageId}
-    ${stageMap[currentStage]?.({
-      next,
-    })}
+  const back = () => {
+    setStageId((stageId + stages.length - 1) % stages.length);
+  };
+
+  return html`<div className="flex flex-col justify-start">
+    <div className="flex">
+      <button onClick=${back}>Back</button>
+      <button onClick=${next}>Next</button>
+    </div>
+
+    ${stageId} - ${currentStage}
+    <${stageMap[currentStage]} next=${next} />
   </div>`;
 }

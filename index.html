@@ -1,12 +1,32 @@
 <!doctype html>
 <head>
   <link rel="stylesheet" href="https://unpkg.com/xp.css" />
+  <link href="/styles/output.css" rel="stylesheet" />
 </head>
 <body></body>
 <style>
   body {
     background-color: #008000;
+    font-family: "Pixelated MS Sans Serif", Arial;
   }
+
+  [popover] {
+    position: fixed;
+    inset: 0;
+    width: fit-content;
+    height: fit-content;
+    margin: auto;
+    border: solid;
+    padding: 0.25em;
+    overflow: clip;
+    color: CanvasText;
+    background-color: Canvas;
+  }
+
+  .title-bar {
+    box-sizing: content-box;
+  }
+
   @keyframes msgSuccess {
     50% {
       opacity: 1;
@@ -35,4 +55,4 @@
     display: none;
   }
 </style>
-<script type="module" src="main.js"></script>
+<script type="module" src="/js/main.js"></script>
