@@ -1,6 +1,6 @@
 import { html } from "https://unpkg.com/htm/preact/standalone.module.js";
 
-let sprite = "'../../assets/card-sprite.png'";
+let sprite = "'./assets/card-sprite.png'";
 let dpr = window.devicePixelRatio;
 let width = 71;
 let height = 96;
