@@ -21,7 +21,9 @@ export default function Card({ suit, number, faceDown }) {
       height: `${height}px`,
       width: `${width}px`,
       borderRadius: "3.5px",
-      background: `url(${sprite}) ${-offsetX}px ${-offsetY}px`,
+      backgroundImage: `url(${sprite})`,
+      backgroundPosition: `${-offsetX}px ${-offsetY}px`,
+      backgroundRepeat: 'no-repeat'
     }}
   ></div>`;
 }
