@@ -1,6 +1,6 @@
 import { html, useEffect, useState } from "https://unpkg.com/htm/preact/standalone.module.js";
 
-let sprite = "'/assets/card-sprite.png'";
+let sprite = "./assets/card-sprite.png";
 let dpr = window.devicePixelRatio;
 let width = 71;
 let height = 96;
@@ -35,12 +35,14 @@ export default function Card({ suit, number, faceDown, group, onClick }) {
       height: `${height}px`,
       width: `${width}px`,
       borderRadius: "3.5px",
-      background: `url(${sprite}) ${-offsetX}px ${-offsetY}px`,
       viewTransitionName: id,
       viewTransitionGroup: "card-move",
       // zIndex: justRendered ? 5 : undefined,
       position: "relative",
       border: justRendered ? "solid 1px red" : "solid 1px transparent",
+      backgroundImage: `url(${sprite})`,
+      backgroundPosition: `${-offsetX}px ${-offsetY}px`,
+      backgroundRepeat: "no-repeat",
     }}
   ></div>`;
 }
