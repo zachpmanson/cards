@@ -32,7 +32,7 @@ export default function StageManager() {
     setStageId((stageId + stages.length - 1) % stages.length);
   };
 
-  return html`<div className="flex flex-col justify-start">
+  return html`<div className="flex flex-col justify-start w-full">
     <div className="flex items-center gap-1">
       <button onClick=${back}>Back</button>
       <button onClick=${next}>Next</button>

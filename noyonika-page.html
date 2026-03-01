@@ -1,0 +1,45 @@
+<head>
+  <link rel="stylesheet" href="https://unpkg.com/xp.css" />
+</head>
+
+<body>
+  <button id="button1" onclick="renamebutton()">heloo</button>
+  <script>
+    function renamebutton() {
+      let x = document.getElementById("button1");
+      x.innerText = "fuck off";
+      console.log("user renamed button");
+    }
+  </script>
+  <br />
+  <button id="button2">hello there</button>
+
+  <div class="window" style="width: 300px">
+    <div class="title-bar">
+      <div class="title-bar-text">A Window With Stuff In It</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="window-body">
+      <p>There's so much room for activities!</p>
+    </div>
+  </div>
+
+  <style>
+    #button1 {
+      font-weight: bold;
+      color: brown;
+      margin-bottom: 10px;
+    }
+  </style>
+
+  <style>
+    #button2 {
+      color: pink;
+      margin-bottom: 10px;
+    }
+  </style>
+</body>

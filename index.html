@@ -3,11 +3,18 @@
   <link rel="stylesheet" href="https://unpkg.com/xp.css" />
   <link href="/styles/output.css" rel="stylesheet" />
 </head>
-<body></body>
+<body>
+  <div id="base"></div>
+</body>
+
 <style>
   body {
     background-color: #008000;
     font-family: "Pixelated MS Sans Serif", Arial;
+  }
+
+  button.bold {
+    font-weight: bold;
   }
 
   [popover] {
@@ -53,6 +60,22 @@
 
   .d-none {
     display: none;
+  }
+
+  ::view-transition-group(*) {
+    /* animation-duration: 3s; */
+    /* This specific curve creates a 'pop' or bounce effect at the end */
+    /* animation-timing-function: linear; */
+    /* z-index: 9999; */
+  }
+  ::view-transition-old(*) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-new(*) {
+    animation: none;
+    mix-blend-mode: normal;
+    /* z-index: 9999; */
   }
 </style>
 <script type="module" src="/js/main.js"></script>

@@ -6,7 +6,7 @@ export default function WantToPlay({ next }) {
     showPopup(
       "Let's make a bet",
       html`<${Body}
-        next=${() => {
+        next=${function () {
           hidePopup();
           next();
         }}
@@ -19,7 +19,7 @@ export default function WantToPlay({ next }) {
 function Body({ next }) {
   const [size, setSize] = useState(1);
 
-  function deal() {
+  function increaseSize() {
     setSize(size + 1);
   }
 
@@ -27,8 +27,9 @@ function Body({ next }) {
     Whoever wins gets to hire the other person?
     <div className="flex justify-end gap-1 items-center">
       <button
+        className="bold"
         onClick=${() => {
-          deal();
+          increaseSize();
         }}
       >
         No thanks
