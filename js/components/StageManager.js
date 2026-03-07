@@ -1,6 +1,6 @@
 import { html, useState } from "https://unpkg.com/htm/preact/standalone.module.js";
-import NoCards from "../stages/NoCards.js";
-import WantToPlay from "../stages/WantToPlay.js";
+import WantToPlay from "../stages/S1WantToPlay.js";
+import NoCards from "../stages/S2NoCards.js";
 
 const stageMap = {
   wantToPlay: WantToPlay,
