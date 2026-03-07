@@ -8,7 +8,7 @@ let height = 96;
 let cwidth = width * Math.round(dpr);
 let cheight = height * Math.round(dpr);
 
-export default function Card({ suit, number, faceDown, group, onClick }) {
+export default function Card({ suit, number, faceDown, group, onClick, disabled }) {
   const [justRendered, setJustRendered] = useState(true);
   useEffect(() => {
     setTimeout(() => {
@@ -29,6 +29,7 @@ export default function Card({ suit, number, faceDown, group, onClick }) {
   return html`<div
     id=${id}
     onClick=${() => {
+      if (disabled) return;
       onClick?.(suit, number, group);
     }}
     style=${{
@@ -37,7 +38,7 @@ export default function Card({ suit, number, faceDown, group, onClick }) {
       borderRadius: "3.5px",
       viewTransitionName: id,
       viewTransitionGroup: "card-move",
-      // zIndex: justRendered ? 5 : undefined,
+      zIndex: justRendered ? 5 : undefined,
       position: "relative",
       border: justRendered ? "solid 1px red" : "solid 1px transparent",
       backgroundImage: `url(${sprite})`,
