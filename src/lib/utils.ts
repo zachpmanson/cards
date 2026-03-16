@@ -5,12 +5,10 @@ export const q = (selector: string): HTMLElement | null => {
 
 export const startTransition = (fn: () => void) => {
   if (typeof document === "undefined" || !("startViewTransition" in document)) {
-    fn();
-    return;
+    // call and return the callback's return value so callers can await it when
+    // needed (e.g. returning a Promise that resolves after paint).
+    return fn();
   }
 
-  // @ts-ignore - experimental API
-  return (document as any).startViewTransition(() => {
-    return fn();
-  });
+  return document.startViewTransition(fn);
 };

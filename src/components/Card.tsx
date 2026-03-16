@@ -1,41 +1,39 @@
+import { CardDetails } from "../state/game";
+
 // reference sprite in the legacy folder so it works in-dev without copying files
 const sprite = "/assets/card-sprite.png";
-const width = 71;
-const height = 96;
+export const cardHeight = 96;
+export const cardWidth = 71;
 
-export type CardProps = {
-  suit: number;
-  number: number;
+export default function Card({
+  faceDown,
+  card,
+  onClick,
+  disabled,
+}: {
+  card: CardDetails;
   faceDown?: boolean;
-  group?: string | number;
-  onClick?: (suit: number, number: number, group?: string | number) => void;
+  onClick?: (card: CardDetails) => void;
   disabled?: boolean;
-};
+}) {
+  const actualSuit = faceDown ? 5 : card.suit;
+  const actualNumber = faceDown ? 1 : card.number;
 
-export type CardDetails = {
-  number: number;
-  suite: number;
-};
+  const offsetX = (Math.floor(actualNumber - 1) % 14) * cardWidth;
+  const offsetY = (Math.floor(actualSuit - 1) % 6) * cardHeight;
 
-export default function Card({ suit, number, faceDown, group, onClick, disabled }: CardProps) {
-  const actualSuit = faceDown ? 5 : suit;
-  const actualNumber = faceDown ? 1 : number;
-
-  const offsetX = (Math.floor(actualNumber - 1) % 14) * width;
-  const offsetY = (Math.floor(actualSuit - 1) % 6) * height;
-
-  const id = cardId({ suit, number, group });
+  const id = cardId(card);
 
   return (
     <div
       id={id}
       onClick={() => {
         if (disabled) return;
-        onClick?.(suit, number, group);
+        onClick?.(card);
       }}
       style={{
-        height: `${height}px`,
-        width: `${width}px`,
+        height: `${cardHeight}px`,
+        width: `${cardWidth}px`,
         borderRadius: "3.5px",
         viewTransitionName: id,
         viewTransitionGroup: "card-move",
@@ -48,6 +46,6 @@ export default function Card({ suit, number, faceDown, group, onClick, disabled 
   );
 }
 
-export function cardId({ suit, number, group }: { suit?: number; number?: number; group?: any }) {
-  return `card-${String(group ?? "0").replace(".", "")}-${suit ?? 0}-${number ?? 0}`;
+export function cardId({ suit, number, groupId }: CardDetails) {
+  return `card-${String(groupId ?? "no-group").replace(".", "")}-${suit ?? 0}-${number ?? 0}`;
 }
