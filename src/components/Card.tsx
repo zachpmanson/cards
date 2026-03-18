@@ -31,6 +31,7 @@ export default function Card({
         if (disabled) return;
         onClick?.(card);
       }}
+      className="text-[blue] flex justify-center"
       style={{
         height: `${cardHeight}px`,
         width: `${cardWidth}px`,
@@ -42,7 +43,11 @@ export default function Card({
         backgroundPosition: `${-offsetX}px ${-offsetY}px`,
         backgroundRepeat: "no-repeat",
       }}
-    />
+    >
+      {/* Suit: {card.suit}
+      <br />
+      Num: {card.number} */}
+    </div>
   );
 }
 

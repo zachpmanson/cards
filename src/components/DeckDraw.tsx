@@ -11,5 +11,5 @@ export default function DeckDraw() {
     }, 1000);
   }, []);
 
-  return <Deck cards={game.slots.drawDeck.value} faceDown={false} onClick={game.actions.deckClicked} />;
+  return <Deck cards={game.slots.drawDeck.value} faceDown={true} onClick={game.actions.draw} />;
 }
