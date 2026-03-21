@@ -8,6 +8,14 @@ export type CardDetails = { suit: number; number: number; groupId: string };
 
 type CardSlot = "drawDeck" | "playedDeck" | `player${PlayerNum}`;
 
+function sortCards(cardA: CardDetails, cardB: CardDetails) {
+  if (cardA.suit !== cardB.suit) {
+    return cardA.suit > cardB.suit ? -1 : 1;
+  }
+
+  return cardA.number > cardB.number ? -1 : 1;
+}
+
 export const N_HANDS = 4;
 export type PlayerNum = number;
 
@@ -27,7 +35,7 @@ export function createGameState() {
       .map((i) => ({ number: (i % 13) + 1, suit: (i % 4) + 1, groupId: "deck1" })),
   );
 
-  const slots: Record<string, Signal<CardDetails[]>> = {
+  const slots: Record<CardSlot, Signal<CardDetails[]>> = {
     ...Object.fromEntries(
       Array(N_HANDS)
         .fill(N_HANDS)
@@ -48,6 +56,10 @@ export function createGameState() {
     currentPlayer: signal<PlayerNum>(0),
     pickupNCards: signal(1),
     nextPlayerOffset: signal(1),
+    debug: signal({
+      openHand: true,
+      botMove: true,
+    }),
   };
 
   function moveCard(card: CardDetails, target: CardSlot) {
@@ -79,11 +91,25 @@ export function createGameState() {
   function canCardBePlayed(card: CardDetails, topCard: CardDetails | undefined) {
     console.log("canCardBePlayed", { card, topCard, pickupNCards: state.pickupNCards.value });
     if (!topCard) return true;
-    if (card.suit === topCard.suit || card.number === topCard.number) return true;
-    if (card.number === 1) return true;
-    if (topCard.number === 9) return true;
-    if (state.pickupNCards.value > 0 && CHAINABLE_CARDS.includes(card.number)) return true;
-    console.log("can't play card");
+    if (state.pickupNCards.value > 1) {
+      if (CHAINABLE_CARDS.includes(card.number) && topCard.suit === card.suit) {
+        console.log(`yes: pickup chain present but ${card.number} chainable and suits match`);
+        return true;
+      } else {
+        console.log(`no: pickup chain present but ${card.number} not chainable or suits don't match`);
+        return false;
+      }
+    }
+    if (card.suit === topCard.suit || card.number === topCard.number) {
+      return true;
+    }
+    if (card.number === 1) {
+      return true;
+    }
+    if (topCard.number === 9) {
+      return true;
+    }
+    console.log("no");
     return false;
   }
 
@@ -101,7 +127,7 @@ export function createGameState() {
       if (state.pickupNCards.value === 1) {
         state.pickupNCards.value = 3;
       } else {
-        state.pickupNCards.value = 3;
+        state.pickupNCards.value += 3;
       }
       // chain +3
     } else if (card.number === 4) {
@@ -109,6 +135,7 @@ export function createGameState() {
       state.pickupNCards.value = 1;
     } else if (card.number === 5) {
       // play again
+      state.nextPlayerOffset.value = 0;
     } else if (card.number === 6) {
       // nothing
     } else if (card.number === 7) {
@@ -134,19 +161,34 @@ export function createGameState() {
   }
 
   function nextPlayer() {
-    console.debug("nextPlayer", {
-      currentPlayer: state.currentPlayer.value,
-      nextPlayerOffset: state.nextPlayerOffset.value,
-      direction: state.direction.value,
-    });
-    if (state.direction.value === "clockwise") {
-      state.currentPlayer.value = ((state.currentPlayer.value + state.nextPlayerOffset.value) % N_HANDS) as PlayerNum;
-    } else {
-      state.currentPlayer.value = ((state.currentPlayer.value - state.nextPlayerOffset.value + N_HANDS) %
-        N_HANDS) as PlayerNum;
-    }
+    startTransition(() => {
+      console.debug("nextPlayer", {
+        currentPlayer: state.currentPlayer.value,
+        nextPlayerOffset: state.nextPlayerOffset.value,
+        direction: state.direction.value,
+      });
+      if (state.direction.value === "clockwise") {
+        state.currentPlayer.value = ((state.currentPlayer.value + state.nextPlayerOffset.value) % N_HANDS) as PlayerNum;
+      } else {
+        state.currentPlayer.value = ((state.currentPlayer.value - state.nextPlayerOffset.value + N_HANDS) %
+          N_HANDS) as PlayerNum;
+      }
+      state.nextPlayerOffset.value = 1;
 
-    state.nextPlayerOffset.value = 1;
+      if (state.debug.value.botMove && state.currentPlayer.value !== 0) {
+        setTimeout(() => botMove(state.currentPlayer.value), 500);
+      }
+    });
+  }
+
+  function botMove(playerNum: number) {
+    const hand = slots[`player${playerNum}`].value;
+    for (let card of hand) {
+      if (canCardBePlayed(card, slots.playedDeck.value.at(-1))) {
+        return actions.playerCardClicked(card, playerNum);
+      }
+    }
+    actions.draw();
   }
 
   const actions = {
@@ -185,7 +227,7 @@ export function createGameState() {
           nextPlayer();
           state.pickupNCards.value = 1;
         },
-        (state.pickupNCards.value + 2) * 200,
+        (state.pickupNCards.value + 4) * 200,
       );
     },
 
@@ -196,17 +238,31 @@ export function createGameState() {
       moveCard(card, "playedDeck");
 
       sideEffect(card);
-
-      nextPlayer();
+      setTimeout(() => {
+        nextPlayer();
+      }, 500);
     },
     clearHands() {
       for (let i = 0; i < N_HANDS; i++) {
         slots[`player${i}` as const].value = [];
       }
     },
+    toggleDebug(key: string) {
+      state.debug.value = {
+        ...state.debug.value,
+        [key]: !state.debug.value[key],
+      };
+    },
+    sortHands() {
+      startTransition(() => {
+        for (let key of Object.keys(slots)) {
+          slots[key].value = [...slots[key].value].sort(sortCards);
+        }
+      });
+    },
   };
 
-  return { slots: slots, actions, state };
+  return { slots, actions, state };
 }
 
 export const GameState = createContext(createGameState());
