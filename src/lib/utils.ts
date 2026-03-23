@@ -12,3 +12,8 @@ export const startTransition = (fn: () => void) => {
 
   return document.startViewTransition(fn);
 };
+
+export const twIf = (cond: boolean, yes: string): string => {
+  if (cond) return yes;
+  return "";
+};

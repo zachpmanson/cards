@@ -5,13 +5,14 @@ import DeckPlayed from "./DeckPlayed";
 import { Hand } from "./Hand";
 
 export default function GameLayout() {
-  const gameState = useContext(GameState);
+  const game = useContext(GameState);
   return (
     <div className="flex items-start h-full w-screen">
       <div className="flex flex-col">
-        <button onClick={() => gameState.actions.sortHands()}>Sort</button>
-        <button onClick={() => gameState.actions.toggleDebug("openHand")}>Toggle Open Hands</button>
-        <button onClick={() => gameState.actions.toggleDebug("botMove")}>Toggle Bot Move</button>
+        <button onClick={() => game.actions.sortHands()}>Sort</button>
+        <button onClick={() => game.actions.toggleDebug("openHand")}>Toggle Open Hands</button>
+        <button onClick={() => game.actions.toggleDebug("botMove")}>Toggle Bot Move</button>
+        <button onClick={() => game.actions.forceNext()}>Force Next</button>
       </div>
       <div className="flex w-full flex-col h-full items-center justify-between py-8">
         <div className="flex w-full">
@@ -20,10 +21,10 @@ export default function GameLayout() {
             .map((_, i) => (
               <div className="flex-1 flex justify-center">
                 <Hand
-                  cards={gameState.slots[`player${i + 1}`].value}
-                  onClick={(card) => gameState.actions.playerCardClicked(card, (i + 1) as PlayerNum)}
+                  cards={game.slots[`player${i + 1}`].value}
+                  onClick={(card) => game.actions.playerCardClicked(card, (i + 1) as PlayerNum)}
                   playerNum={(i + 1) as PlayerNum}
-                  faceDown={!gameState.state.debug.value.openHand}
+                  faceDown={!game.state.debug.value.openHand}
                 />
               </div>
             ))}
@@ -34,31 +35,39 @@ export default function GameLayout() {
         </div>
         <div>
           <Hand
-            cards={gameState.slots["player0"].value}
-            onClick={(card) => gameState.actions.playerCardClicked(card, 0)}
+            cards={game.slots["player0"].value}
+            onClick={
+              game.state.selectMode.value === "donation-card"
+                ? (card) => game.actions.selectDonationCard(card)
+                : (card) => game.actions.playerCardClicked(card, 0)
+            }
             playerNum={0}
           />
         </div>
         <div className="flex gap-3 items-end">
           <span>
-            <span>Direction:</span> <span>{gameState.state.direction.value}</span>
+            <span>Direction:</span> <span>{game.state.direction.value}</span>
           </span>
           <span>
-            <span>Current Player:</span> <span>{gameState.state.currentPlayer.value}</span>
+            <span>Current Player:</span> <span>{game.state.currentPlayer.value}</span>
           </span>
           <span>
             <span>Next Player Offset:</span>
-            <span> {gameState.state.nextPlayerOffset.value}</span>
+            <span> {game.state.nextPlayerOffset.value}</span>
+          </span>
+          <span>
+            <span>Select Mode:</span>
+            <span> {game.state.selectMode.value}</span>
           </span>
           <span>
             <span>Pickup N Cards:</span>
             <span
               className="transition-all"
               style={{
-                fontSize: gameState.state.pickupNCards.value * 12,
+                fontSize: game.state.pickupNCards.value * 12,
               }}
             >
-              {gameState.state.pickupNCards.value}
+              {game.state.pickupNCards.value}
             </span>
           </span>
         </div>

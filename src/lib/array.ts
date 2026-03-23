@@ -1,3 +1,5 @@
+import { randomInt } from "./numbers";
+
 export function randomizeArray(arr: any[]) {
   let array = [...arr];
 
@@ -6,4 +8,13 @@ export function randomizeArray(arr: any[]) {
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+}
+
+export function randomChoice<T>(arr: T[]): T {
+  const n = randomInt(0, arr.length - 1);
+  return arr[n];
+}
+
+export function generateRange(len: number) {
+  return new Array(len).fill(0).map((_, i) => i);
 }

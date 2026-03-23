@@ -1,7 +1,7 @@
 // src/state/game.tsx
 import { computed, Signal, signal } from "@preact/signals";
 import { createContext } from "preact";
-import { randomizeArray } from "../lib/array";
+import { generateRange, randomChoice, randomizeArray } from "../lib/array";
 import { startTransition } from "../lib/utils";
 
 export type CardDetails = { suit: number; number: number; groupId: string };
@@ -23,6 +23,20 @@ function compareCards(a: CardDetails, b: CardDetails) {
   return a.suit === b.suit && a.number === b.number && a.groupId === b.groupId;
 }
 
+function p(playerNum: PlayerNum): CardSlot {
+  return `player${playerNum}`;
+}
+
+function getPlayerDistance(curr: number, dest: number, direction) {
+  if (direction === "clockwise") {
+    return dest > curr ? dest - curr : N_HANDS - (dest - curr);
+  } else {
+    return dest > curr ? N_HANDS - (dest - curr) : dest - curr;
+  }
+}
+
+// x x x x
+// 0 1 2 3
 const CHAINABLE_CARDS = [2, 3, 4, 10, 11];
 
 export function createGameState() {
@@ -39,7 +53,7 @@ export function createGameState() {
     ...Object.fromEntries(
       Array(N_HANDS)
         .fill(N_HANDS)
-        .map((_, i) => [`player${i}`, signal<CardDetails[]>([])]),
+        .map((_, i) => [p(i), signal<CardDetails[]>([])]),
     ),
     drawDeck: signal<CardDetails[]>(baseCards),
     playedDeck: signal<CardDetails[]>([]),
@@ -56,6 +70,8 @@ export function createGameState() {
     currentPlayer: signal<PlayerNum>(0),
     pickupNCards: signal(1),
     nextPlayerOffset: signal(1),
+    selectMode: signal<"next-player" | "donation-target" | "donation-card" | undefined>(),
+    target: signal<PlayerNum>(),
     debug: signal({
       openHand: true,
       botMove: true,
@@ -65,9 +81,9 @@ export function createGameState() {
   function moveCard(card: CardDetails, target: CardSlot) {
     startTransition(() => {
       for (let i = 0; i < N_HANDS; i++) {
-        const playerIndex = slots[`player${i}` as const].value.findIndex((c) => compareCards(c, card));
+        const playerIndex = slots[p(i)].value.findIndex((c) => compareCards(c, card));
         if (playerIndex !== -1) {
-          slots[`player${i}` as const].value = slots[`player${i}` as const].value.filter((_, j) => j !== playerIndex);
+          slots[p(i)].value = slots[p(i)].value.filter((_, j) => j !== playerIndex);
           slots[target].value = [...slots[target].value, card];
           return;
         }
@@ -92,7 +108,7 @@ export function createGameState() {
     console.log("canCardBePlayed", { card, topCard, pickupNCards: state.pickupNCards.value });
     if (!topCard) return true;
     if (state.pickupNCards.value > 1) {
-      if (CHAINABLE_CARDS.includes(card.number) && topCard.suit === card.suit) {
+      if (CHAINABLE_CARDS.includes(card.number) && (topCard.suit === card.suit || topCard.number === card.number)) {
         console.log(`yes: pickup chain present but ${card.number} chainable and suits match`);
         return true;
       } else {
@@ -155,9 +171,28 @@ export function createGameState() {
       state.nextPlayerOffset.value = 2;
     } else if (card.number === 12) {
       // pick next player
+      if (state.currentPlayer.value === 0) {
+        state.selectMode.value = "next-player";
+      } else if (state.debug.value.botMove) {
+        state.nextPlayerOffset.value = getPlayerDistance(
+          state.currentPlayer.value,
+          botTarget(state.currentPlayer.value),
+          state.direction.value,
+        );
+        setTimeout(() => nextPlayer(), 500);
+      }
+      return false;
     } else if (card.number === 13) {
       // all other players pick a card to give to a player
+      if (state.currentPlayer.value === 0) {
+        state.selectMode.value = "donation-target";
+      } else if (state.debug.value.botMove) {
+        state.target.value = botTarget(state.currentPlayer.value);
+        state.selectMode.value = "donation-card";
+      }
+      return false;
     }
+    return true;
   }
 
   function nextPlayer() {
@@ -182,13 +217,23 @@ export function createGameState() {
   }
 
   function botMove(playerNum: number) {
-    const hand = slots[`player${playerNum}`].value;
+    const hand = slots[p(playerNum)].value;
     for (let card of hand) {
       if (canCardBePlayed(card, slots.playedDeck.value.at(-1))) {
         return actions.playerCardClicked(card, playerNum);
       }
     }
     actions.draw();
+  }
+
+  function botTarget(playerNum: PlayerNum) {
+    let playerNums = generateRange(N_HANDS).splice(playerNum, 1);
+    let choice = randomChoice(playerNums);
+    console.log(`Bot targeted ${choice}`);
+    return choice;
+  }
+  function botSelectDonateCard(playerNum: number) {
+    return randomChoice(slots[p(playerNum)].value);
   }
 
   const actions = {
@@ -204,7 +249,7 @@ export function createGameState() {
         setTimeout(() => {
           const card = slots.drawDeck.value.at(-1);
           if (!card) return;
-          moveCard(card, `player${i % N_HANDS}` as const);
+          moveCard(card, p(i % N_HANDS));
         }, i * 200);
       }
       setTimeout(
@@ -219,7 +264,7 @@ export function createGameState() {
     draw() {
       for (let i = 0; i < state.pickupNCards.value; i++) {
         setTimeout(() => {
-          moveCard(topDrawCard.value, `player${state.currentPlayer.value}`);
+          moveCard(topDrawCard.value, p(state.currentPlayer.value));
         }, i * 200);
       }
       setTimeout(
@@ -237,14 +282,16 @@ export function createGameState() {
 
       moveCard(card, "playedDeck");
 
-      sideEffect(card);
-      setTimeout(() => {
-        nextPlayer();
-      }, 500);
+      const goToNext = sideEffect(card);
+      if (goToNext) {
+        setTimeout(() => {
+          nextPlayer();
+        }, 500);
+      }
     },
     clearHands() {
       for (let i = 0; i < N_HANDS; i++) {
-        slots[`player${i}` as const].value = [];
+        slots[p(i)].value = [];
       }
     },
     toggleDebug(key: string) {
@@ -259,6 +306,35 @@ export function createGameState() {
           slots[key].value = [...slots[key].value].sort(sortCards);
         }
       });
+    },
+    selectPlayer(playerNum) {
+      if (state.selectMode.value === "next-player") {
+        state.nextPlayerOffset.value = state.direction.value === "clockwise" ? playerNum : N_HANDS - playerNum;
+        setTimeout(() => nextPlayer(), 500);
+      } else if (state.selectMode.value === "donation-target") {
+        state.target.value = playerNum;
+        state.selectMode.value = "donation-card";
+      }
+    },
+    selectDonationCard(card: CardDetails) {
+      if (state.selectMode.value === "donation-card") {
+        moveCard(card, p(state.target.value));
+        state.selectMode.value = undefined;
+        if (state.debug.value.botMove) {
+          for (let i = 1; i < N_HANDS; i++) {
+            if (i === state.target.value) continue;
+
+            let choice = botSelectDonateCard(i);
+            moveCard(choice, p(state.target.value));
+          }
+        }
+        setTimeout(() => {
+          nextPlayer();
+        }, 500);
+      }
+    },
+    forceNext() {
+      nextPlayer();
     },
   };
 
