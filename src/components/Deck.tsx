@@ -30,7 +30,7 @@ export default function Deck({
   }
 
   return (
-    <div className="relative h-24 w-20 border border-white border-solid" onClick={onBaseClick}>
+    <div className="relative h-26 w-20 border border-white border-solid" onClick={onBaseClick}>
       {deck.value.map((card: any, i: number) => (
         <div className="absolute" style={{ ...(card.style || {}), zIndex: i }}>
           <Card

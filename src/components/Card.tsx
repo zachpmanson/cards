@@ -27,7 +27,8 @@ export default function Card({
   return (
     <div
       id={id}
-      onClick={() => {
+      onClick={(event) => {
+        event.stopPropagation();
         if (disabled) return;
         onClick?.(card);
       }}

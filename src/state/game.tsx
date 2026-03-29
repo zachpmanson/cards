@@ -84,7 +84,6 @@ export function createGameState() {
 
   async function moveCards(cards: CardDetails[], target: CardSlot) {
     const logicalMoveCard = (card: CardDetails, targetSlot: CardSlot) => {
-      console.debug(`Attempting to move`, cards);
       if (!card) {
         console.debug(`Attempted to move undefined card`);
         return;
@@ -112,6 +111,7 @@ export function createGameState() {
         return;
       }
     };
+    console.debug(`Attempting to move`, cards);
 
     startTransition(() => {
       for (let card of cards) {
@@ -269,7 +269,7 @@ export function createGameState() {
   }
 
   async function refreshDeck() {
-    const newDeck = slots.playedDeck.value.slice(0, -2);
+    const newDeck = slots.playedDeck.value.slice(0, -1);
     console.log(`Refreshing draw deck with ${newDeck.length} cards from the played deck`);
     await moveCards(newDeck, "drawDeck");
     await shuffleSlot("drawDeck");
@@ -304,7 +304,7 @@ export function createGameState() {
       if (slots.drawDeck.value.length === 0) {
         await refreshDeck();
       }
-      state.nextPlayerOffset.value = 1;
+      state.pickupNCards.value = 1;
 
       nextPlayer();
     },

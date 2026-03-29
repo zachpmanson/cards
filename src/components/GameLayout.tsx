@@ -7,8 +7,8 @@ import { Hand } from "./Hand";
 export default function GameLayout() {
   const game = useContext(GameState);
   return (
-    <div className="flex items-start h-full w-screen">
-      <div className="flex flex-col">
+    <div className="flex items-start max-h-full overflow-hidden h-full w-screen relative">
+      <div className="flex flex-col absolute top-0 left-0">
         <button onClick={() => game.actions.sortHands()}>Sort</button>
         <button onClick={() => game.actions.toggleDebug("openHand")}>Toggle Open Hands</button>
         <button onClick={() => game.actions.toggleDebug("botMove")}>Toggle Bot Move</button>
@@ -44,7 +44,7 @@ export default function GameLayout() {
             playerNum={0}
           />
         </div>
-        <div className="flex gap-3 items-end">
+        <div className="px-8 flex gap-3 items-end justify-between absolute bottom-0 pointer-events-none w-full">
           <span>
             <span>Direction:</span> <span>{game.state.direction.value}</span>
           </span>
@@ -59,15 +59,17 @@ export default function GameLayout() {
             <span>Select Mode: </span>
             <span className="text-red-500 animate-ping">{game.state.selectMode.value}</span>
           </span>
-          <span>Pickup N Cards:</span>
-          <span
-            className="transition-all animate-pulse"
-            style={{
-              fontSize: game.state.pickupNCards.value * 12,
-            }}
-          >
-            {game.state.pickupNCards.value}
-          </span>
+          <div className="flex items-end">
+            <span>Pickup N Cards:</span>
+            <span
+              className="transition-all animate-pulse"
+              style={{
+                fontSize: game.state.pickupNCards.value * 12,
+              }}
+            >
+              {game.state.pickupNCards.value}
+            </span>
+          </div>
         </div>
       </div>
     </div>
