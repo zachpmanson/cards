@@ -5,10 +5,12 @@ export default function FannedCards({
   cards,
   onClick,
   faceDown,
+  disabled,
 }: {
   cards: CardDetails[];
   onClick?: (card: CardDetails) => void;
   faceDown?: boolean;
+  disabled?: boolean;
 }) {
   const rotate = true;
   const mouseOverClass = "hover:translate-y-[-0.5em] cursor-pointer";
@@ -28,7 +30,7 @@ export default function FannedCards({
         return (
           <div
             key={i}
-            className={faceDown ? undefined : mouseOverClass}
+            className={faceDown || !!disabled ? undefined : mouseOverClass}
             style={{
               // Use Math.abs before raising to a fractional power. Raising a negative
               // number to a non-integer exponent yields NaN in JS (complex number),

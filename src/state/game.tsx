@@ -1,8 +1,9 @@
 // src/state/game.tsx
 import { computed, Signal, signal } from "@preact/signals";
 import { createContext } from "preact";
-import { generateRange, randomChoice, randomizeArray } from "../lib/array";
-import { startTransition } from "../lib/utils";
+import { cardId } from "../components/Card";
+import { generateRange, randomChoice, randomizeArray, sort } from "../lib/array";
+import { startTransition, timeout } from "../lib/utils";
 
 export type CardDetails = { suit: number; number: number; groupId: string };
 
@@ -17,6 +18,9 @@ function sortCards(cardA: CardDetails, cardB: CardDetails) {
 }
 
 export const N_HANDS = 4;
+const INIT_HAND_SIZE = 12;
+const CARD_MOVE_TIMEOUT = 200;
+
 export type PlayerNum = number;
 
 function compareCards(a: CardDetails, b: CardDetails) {
@@ -78,8 +82,14 @@ export function createGameState() {
     }),
   };
 
-  function moveCard(card: CardDetails, target: CardSlot) {
-    startTransition(() => {
+  async function moveCards(cards: CardDetails[], target: CardSlot) {
+    const logicalMoveCard = (card: CardDetails, targetSlot: CardSlot) => {
+      console.debug(`Attempting to move`, cards);
+      if (!card) {
+        console.debug(`Attempted to move undefined card`);
+        return;
+      }
+      console.debug(`Moving card ${cardId(card)} to ${target}`);
       for (let i = 0; i < N_HANDS; i++) {
         const playerIndex = slots[p(i)].value.findIndex((c) => compareCards(c, card));
         if (playerIndex !== -1) {
@@ -101,7 +111,14 @@ export function createGameState() {
         slots[target].value = [...slots[target].value, card];
         return;
       }
+    };
+
+    startTransition(() => {
+      for (let card of cards) {
+        logicalMoveCard(card, target);
+      }
     });
+    await timeout(CARD_MOVE_TIMEOUT);
   }
 
   function canCardBePlayed(card: CardDetails, topCard: CardDetails | undefined) {
@@ -220,10 +237,11 @@ export function createGameState() {
     const hand = slots[p(playerNum)].value;
     for (let card of hand) {
       if (canCardBePlayed(card, slots.playedDeck.value.at(-1))) {
-        return actions.playerCardClicked(card, playerNum);
+        actions.playerCardClicked(card, playerNum).then();
+        return;
       }
     }
-    actions.draw();
+    actions.draw().then();
   }
 
   function botTarget(playerNum: PlayerNum) {
@@ -236,104 +254,125 @@ export function createGameState() {
     return randomChoice(slots[p(playerNum)].value);
   }
 
+  async function sortSlot(slotName: CardSlot) {
+    startTransition(() => {
+      slots[slotName].value = sort(slots[slotName].value, sortCards);
+    });
+    await timeout(CARD_MOVE_TIMEOUT);
+  }
+
+  async function shuffleSlot(slotName: CardSlot) {
+    startTransition(() => {
+      slots[slotName].value = randomizeArray(slots[slotName].value);
+    });
+    await timeout(CARD_MOVE_TIMEOUT);
+  }
+
+  async function refreshDeck() {
+    const newDeck = slots.playedDeck.value.slice(0, -2);
+    console.log(`Refreshing draw deck with ${newDeck.length} cards from the played deck`);
+    await moveCards(newDeck, "drawDeck");
+    await shuffleSlot("drawDeck");
+  }
+
   const actions = {
-    flipCard() {
+    async flipCard() {
+      console.debug(`flipCard()`);
       const card = slots.drawDeck.value.at(-1);
       if (!card) return;
-      moveCard(card, "playedDeck");
+      await moveCards([card], "playedDeck");
     },
 
-    initialDeal() {
-      const initialHandSize = 7;
-      for (let i = 0; i < initialHandSize * N_HANDS; i++) {
-        setTimeout(() => {
-          const card = slots.drawDeck.value.at(-1);
-          if (!card) return;
-          moveCard(card, p(i % N_HANDS));
-        }, i * 200);
+    async initialDeal() {
+      console.debug(`initialDeal()`);
+      for (let i = 0; i < INIT_HAND_SIZE * N_HANDS; i++) {
+        const card = slots.drawDeck.value.at(-1);
+        if (!card) return;
+        await moveCards([card], p(i % N_HANDS));
       }
-      setTimeout(
-        () => {
-          actions.flipCard();
-          // moveCard(slots.drawDeck.value.at(-1), "playedDeck");
-          // state.currentPlayer.value = 0;
-        },
-        200 * (initialHandSize * N_HANDS + 1),
-      );
+      await actions.flipCard();
     },
-    draw() {
+    async draw() {
+      console.debug(`draw()`);
+      if (state.pickupNCards.value > slots.drawDeck.value.length) {
+        await refreshDeck();
+      }
       for (let i = 0; i < state.pickupNCards.value; i++) {
-        setTimeout(() => {
-          moveCard(topDrawCard.value, p(state.currentPlayer.value));
-        }, i * 200);
+        await moveCards([topDrawCard.value], p(state.currentPlayer.value));
       }
-      setTimeout(
-        () => {
-          nextPlayer();
-          state.pickupNCards.value = 1;
-        },
-        (state.pickupNCards.value + 4) * 200,
-      );
+      await timeout(200);
+      if (slots.drawDeck.value.length === 0) {
+        await refreshDeck();
+      }
+      state.nextPlayerOffset.value = 1;
+
+      nextPlayer();
     },
 
-    playerCardClicked(card: CardDetails, playerNum: PlayerNum) {
+    async playerCardClicked(card: CardDetails, playerNum: PlayerNum) {
+      console.debug(`playerCardClicked()`);
       if (playerNum !== state.currentPlayer.value) return;
       if (!canCardBePlayed(card, topPlayedCard.value)) return;
 
-      moveCard(card, "playedDeck");
-
+      await moveCards([card], "playedDeck");
       const goToNext = sideEffect(card);
       if (goToNext) {
-        setTimeout(() => {
-          nextPlayer();
-        }, 500);
+        await timeout(500);
+        nextPlayer();
       }
     },
     clearHands() {
+      console.debug(`clearHands()`);
       for (let i = 0; i < N_HANDS; i++) {
         slots[p(i)].value = [];
       }
     },
     toggleDebug(key: string) {
+      console.debug(`toggleDebug()`);
       state.debug.value = {
         ...state.debug.value,
         [key]: !state.debug.value[key],
       };
     },
     sortHands() {
+      console.debug(`sortHands()`);
       startTransition(() => {
         for (let key of Object.keys(slots)) {
-          slots[key].value = [...slots[key].value].sort(sortCards);
+          slots[key].value = sort(slots[key].value, sortCards);
         }
       });
     },
-    selectPlayer(playerNum) {
+    selectPlayer(playerNum: PlayerNum) {
+      console.debug(`selectPlayer()`);
       if (state.selectMode.value === "next-player") {
         state.nextPlayerOffset.value = state.direction.value === "clockwise" ? playerNum : N_HANDS - playerNum;
         setTimeout(() => nextPlayer(), 500);
+        state.selectMode.value = undefined;
       } else if (state.selectMode.value === "donation-target") {
         state.target.value = playerNum;
         state.selectMode.value = "donation-card";
       }
     },
-    selectDonationCard(card: CardDetails) {
-      if (state.selectMode.value === "donation-card") {
-        moveCard(card, p(state.target.value));
-        state.selectMode.value = undefined;
-        if (state.debug.value.botMove) {
-          for (let i = 1; i < N_HANDS; i++) {
-            if (i === state.target.value) continue;
+    async selectDonationCard(card: CardDetails) {
+      console.debug(`selectDonationCard()`);
+      if (state.selectMode.value !== "donation-card") return;
 
-            let choice = botSelectDonateCard(i);
-            moveCard(choice, p(state.target.value));
-          }
+      const targetPlayer = p(state.target.value);
+      await moveCards([card], targetPlayer);
+      state.selectMode.value = undefined;
+      if (state.debug.value.botMove) {
+        for (let i = 1; i < N_HANDS; i++) {
+          if (i === state.target.value) continue;
+
+          let choice = botSelectDonateCard(i);
+          await moveCards([choice], targetPlayer);
         }
-        setTimeout(() => {
-          nextPlayer();
-        }, 500);
       }
+      await timeout(500);
+      nextPlayer();
     },
     forceNext() {
+      console.debug(`forceNext()`);
       nextPlayer();
     },
   };

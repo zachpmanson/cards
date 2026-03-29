@@ -22,7 +22,7 @@ export default function GameLayout() {
               <div className="flex-1 flex justify-center">
                 <Hand
                   cards={game.slots[`player${i + 1}`].value}
-                  onClick={(card) => game.actions.playerCardClicked(card, (i + 1) as PlayerNum)}
+                  onClick={(card) => game.actions.playerCardClicked(card, (i + 1) as PlayerNum).then()}
                   playerNum={(i + 1) as PlayerNum}
                   faceDown={!game.state.debug.value.openHand}
                 />
@@ -38,8 +38,8 @@ export default function GameLayout() {
             cards={game.slots["player0"].value}
             onClick={
               game.state.selectMode.value === "donation-card"
-                ? (card) => game.actions.selectDonationCard(card)
-                : (card) => game.actions.playerCardClicked(card, 0)
+                ? (card) => game.actions.selectDonationCard(card).then()
+                : (card) => game.actions.playerCardClicked(card, 0).then()
             }
             playerNum={0}
           />
@@ -56,19 +56,17 @@ export default function GameLayout() {
             <span> {game.state.nextPlayerOffset.value}</span>
           </span>
           <span>
-            <span>Select Mode:</span>
-            <span> {game.state.selectMode.value}</span>
+            <span>Select Mode: </span>
+            <span className="text-red-500 animate-ping">{game.state.selectMode.value}</span>
           </span>
-          <span>
-            <span>Pickup N Cards:</span>
-            <span
-              className="transition-all"
-              style={{
-                fontSize: game.state.pickupNCards.value * 12,
-              }}
-            >
-              {game.state.pickupNCards.value}
-            </span>
+          <span>Pickup N Cards:</span>
+          <span
+            className="transition-all animate-pulse"
+            style={{
+              fontSize: game.state.pickupNCards.value * 12,
+            }}
+          >
+            {game.state.pickupNCards.value}
           </span>
         </div>
       </div>

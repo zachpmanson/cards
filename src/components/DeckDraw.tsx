@@ -7,9 +7,16 @@ export default function DeckDraw() {
 
   useEffect(() => {
     setTimeout(() => {
-      game.actions.initialDeal();
+      game.actions.initialDeal().then();
     }, 1000);
   }, []);
 
-  return <Deck cards={game.slots.drawDeck.value} faceDown={true} onClick={game.actions.draw} />;
+  return (
+    <Deck
+      cards={game.slots.drawDeck.value}
+      faceDown={true}
+      onClick={() => game.actions.draw().then()}
+      onBaseClick={() => game.actions.draw().then()}
+    />
+  );
 }

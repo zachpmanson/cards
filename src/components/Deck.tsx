@@ -8,13 +8,17 @@ function wiggle() {
 
 const wiggleStack = new Array(52).fill(0).map(() => wiggle());
 
-type DeckProps = {
+export default function Deck({
+  onClick,
+  cards,
+  faceDown,
+  onBaseClick,
+}: {
   cards: CardDetails[];
   onClick?: (card: CardDetails) => void;
   faceDown?: boolean;
-};
-
-export default function Deck({ onClick, cards, faceDown }: DeckProps) {
+  onBaseClick?: () => void;
+}) {
   const deck = computed(() =>
     cards.map(({ number, suit, groupId }, index) => {
       return { number, suit, style: wiggleStack[index % 52], groupId: groupId };
@@ -26,7 +30,7 @@ export default function Deck({ onClick, cards, faceDown }: DeckProps) {
   }
 
   return (
-    <div className="relative h-[110px] w-[80px]">
+    <div className="relative h-24 w-20 border border-white border-solid" onClick={onBaseClick}>
       {deck.value.map((card: any, i: number) => (
         <div className="absolute" style={{ ...(card.style || {}), zIndex: i }}>
           <Card

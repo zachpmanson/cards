@@ -17,3 +17,7 @@ export const twIf = (cond: boolean, yes: string): string => {
   if (cond) return yes;
   return "";
 };
+
+export const timeout = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};

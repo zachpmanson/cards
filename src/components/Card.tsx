@@ -31,7 +31,7 @@ export default function Card({
         if (disabled) return;
         onClick?.(card);
       }}
-      className="text-[blue] flex justify-center"
+      className="text-[blue] flex justify-center target:z-10"
       style={{
         height: `${cardHeight}px`,
         width: `${cardWidth}px`,

@@ -18,3 +18,7 @@ export function randomChoice<T>(arr: T[]): T {
 export function generateRange(len: number) {
   return new Array(len).fill(0).map((_, i) => i);
 }
+
+export function sort<T>(arr: T[], sortFunc: (a: T, b: T) => -1 | 1) {
+  return [...arr].sort(sortFunc);
+}
